@@ -9,7 +9,6 @@ Install Node.js 24 or newer, then:
 ```sh
 git clone https://github.com/akshaycg46/Mars.git
 cd Mars
-git switch codex/jigyasa-3d-rebuild
 cd next
 node server.mjs
 ```

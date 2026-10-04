@@ -45,7 +45,7 @@ Uses the operational endpoint behind [NASA's Curiosity raw image gallery](https:
 
 This is a local working version, not a public deployment. It listens on loopback. A public deployment needs an HTTPS reverse proxy, `COOKIE_SECURE=1`, persistent storage/backups, and production hosting configuration. Email verification and password recovery are not implemented. The user approved modernizing the technology; accounts use SQLite. The original Java/JSP/MySQL code remains available for reference.
 
-The illustrative planet and rover line art are decorative. Gallery photographs are actual NASA images with credits.
+The interactive planet and rover models are NASA visualization assets. Gallery photographs are actual NASA images with credits.
 
 ### Direct NASA verification
 
