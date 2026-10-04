@@ -38,3 +38,11 @@ test('3D assets are served locally with the required restricted CSP',async()=>{
  for(const name of ['mars','curiosity']){const r=await fetch(base+'/models/'+name+'.glb');assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'model/gltf-binary');const bytes=Buffer.from(await r.arrayBuffer());assert.equal(bytes.subarray(0,4).toString(),'glTF');assert.equal(bytes.readUInt32LE(8),bytes.length);}
  const script=await fetch(base+'/scenes.js');assert.equal(script.status,200);assert.match(script.headers.get('content-type'),/javascript/);
 });
+
+test('simulator and all local module dependencies are served with correct MIME types',async()=>{
+ const r=await fetch(base+'/drive');assert.equal(r.status,200);assert.match(await r.text(),/Take the controls/);
+ const seen=new Set();
+ async function visit(path){if(seen.has(path))return;seen.add(path);const r=await fetch(base+path);assert.equal(r.status,200,path);assert.match(r.headers.get('content-type'),/javascript/,path);const source=await r.text();for(const match of source.matchAll(/(?:from\s*|import\s*)['"]([^'"]+)['"]/g)){if(match[1].startsWith('.'))await visit(new URL(match[1],base+path).pathname);}}
+ await visit('/sim/drive.js');assert.ok(seen.has('/vendor/three/SkeletonUtils.js'));
+ for(const file of ['gale.json','gale-heights.f32','source-label.txt'])assert.equal((await fetch(base+'/terrain/'+file)).status,200);
+});

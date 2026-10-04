@@ -17,6 +17,10 @@ Open **http://127.0.0.1:4173**. On Windows, `./Start-Jigyasa.ps1` from the repos
 
 The URL is local to the computer running the app. A public deployment has not been configured.
 
+## Drive on Mars
+
+Open **http://127.0.0.1:4173/drive** after starting the app. Drive the NASA Curiosity model across measured HiRISE terrain with gravity, wheel contact, steering and braking. [Data, controls and physics limits](docs/SIMULATION.md).
+
 ## Features
 
 - Real Curiosity photographs from NASA's gallery endpoint, with date ranges, camera filters, and pagination.
@@ -33,6 +37,7 @@ The URL is local to the computer running the app. A public deployment has not be
 | Database | SQLite through `node:sqlite` |
 | Interface | HTML, CSS, browser JavaScript modules |
 | 3D | Google model-viewer 4.3.1 (WebGL / Three.js), NASA GLB assets |
+| Driving simulation | Three.js 0.186.1, Rapier 0.21.0 (WebAssembly), HiRISE elevation data |
 | Authentication | scrypt password hashes, HttpOnly session cookies |
 | Imagery | NASA / JPL Curiosity raw image gallery endpoint |
 | Tests | Node.js test runner |
@@ -43,7 +48,7 @@ The 3D models and viewer are served from this repository. No analytics are inclu
 
 ```sh
 cd next
-node --test test/app.test.mjs
+node --test test/*.test.mjs
 ```
 
 [Setup, verification and deployment notes](next/README.md) · [Asset credits](next/public/ASSET-CREDITS.md) · [Rebuild requirements](docs/REBUILD.md)

@@ -14,4 +14,4 @@ jobs:
           node-version: '24'
       - name: Run account, archive and asset checks
         working-directory: next
-        run: node --test test/app.test.mjs
+        run: node --test test/*.test.mjs
