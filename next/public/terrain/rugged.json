@@ -1,5 +1,5 @@
 {
-  "name": "Gale Crater \u2014 Curiosity landing-site region",
+  "name": "Gale Crater \u2014 southern surveyed slopes",
   "productId": "DTEEC_023957_1755_024023_1755_U01",
   "sourceUrl": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_023900_023999/ESP_023957_1755_ESP_024023_1755/DTEEC_023957_1755_024023_1755_U01.IMG",
   "sourcePage": "https://www.uahirise.org/dtm/dtm.php?ID=ESP_023957_1755",
@@ -11,29 +11,34 @@
   "format": "float32 little-endian, north-to-south rows, west-to-east columns",
   "datum": "Mars 2000 equipotential surface, meters",
   "projection": "Equirectangular, planetocentric, east-positive",
-  "centerLatitude": -4.589501652643924,
-  "centerLongitude": 137.45503404275374,
+  "centerLatitude": -4.679933501065079,
+  "centerLongitude": 137.53186185508739,
   "sourcePixelWindow": {
-    "row": 10110,
-    "column": 1259,
+    "row": 15408,
+    "column": 5760,
     "width": 513,
     "height": 513
   },
-  "minimumElevation": -4526.24267578125,
-  "maximumElevation": -4513.35986328125,
-  "heightSha256": "aa345ab2af250d2e5e9e4d860c7f7f582e96d3d3eee0eb0cba54952d0e77ae00",
-  "sourceRangeSha256": "06e8afcb2b2f077f3439c329cc84ecc0334a99bf981bd4c75b86aaab558b542f",
+  "minimumElevation": -4039.681396484375,
+  "maximumElevation": -3808.73388671875,
+  "heightSha256": "a4f61c3e3b5c5bde9534db80789bb571f870694c059895df90b44c1320a8c96b",
+  "sourceRangeSha256": "7d3a68979cc2cd68c9ef3e73df53247f983418ec9df4f6aa191368e8d8b2370a",
   "sourceByteRange": [
-    273603660,
-    287485439
+    378867060,
+    434312999
   ],
   "verticalExaggeration": 1,
   "notes": "Measured stereo-derived elevations. No missing samples, no invented height detail. Surface color is illustrative, not satellite photography. The drive is a simulation, not a replay of Curiosity telemetry.",
+  "slope90Degrees": 36.794002532958984,
+  "spawn": {
+    "x": -1.0117630165416,
+    "z": 0.0
+  },
   "ortho": {
-    "file": "gale-ortho.png",
+    "file": "rugged-ortho.png",
     "sourceUrl": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_023900_023999/ESP_023957_1755_ESP_024023_1755/ESP_023957_1755_RED_C_01_ORTHO.JP2",
     "productId": "ESP_023957_1755_RED_C_01_ORTHO",
-    "sha256": "47eea0b47e32bf275f08511f157fec98571d474f0e97cb00775319f3970d647a",
+    "sha256": "4ac7b089c17a01afa3d4ad0b74500500b07e9e9c876cadf0d42ccde8efef5b5f",
     "note": "Co-registered red-band orbital brightness. Same map projection, resolution and pixel origin as the DTM. Display tint and subpixel shader detail are illustrative, not measured color."
   }
 }

@@ -18,3 +18,7 @@ The viewer and both models are served locally; no runtime CDN requests are requi
 - Three.js 0.186.1: MIT, https://threejs.org/. The package's ESM renderer, GLTFLoader, OrbitControls, and BufferGeometryUtils are bundled locally, with imports rewritten to local module paths. License in `vendor/three/LICENSE.txt`.
 - Rapier 0.21.0 (@dimforge/rapier3d-compat): Apache-2.0, https://rapier.rs/. Local WebAssembly-compatible ES module; license in `vendor/rapier/LICENSE.txt`.
 - Both npm tarballs were verified against the registry SHA-512 integrity metadata before extraction.
+
+- Rugged terrain: southern crop of the same HiRISE DTM, documented in `terrain/rugged.json`.
+- Surface brightness: NASA/JPL/UArizona HiRISE `ESP_023957_1755_RED_C_01_ORTHO`; co-registered crops in `gale-ortho.png` and `rugged-ortho.png`. Metadata and hashes are in each tile JSON; label in `terrain/ortho-label.txt`. Reproduction: `scripts/prepare-rugged-terrain.py` then `scripts/prepare-terrain-imagery.py` (Python, NumPy, Pillow). Procedural tint, grain and cracks are illustrative.
+- Weather visuals: inspired by NASA’s documented 2018 dust-storm haze at Gale. Preset wind speeds, dust rendering and force coefficients are illustrative, not measured weather. See `docs/SIMULATION.md` for sources and limits.
