@@ -4,3 +4,4 @@
 *.jpg -text
 *.jar -text
 *.class -text
+*.f32 -text

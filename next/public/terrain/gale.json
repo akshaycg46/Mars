@@ -1,0 +1,32 @@
+{
+  "name": "Gale Crater \u2014 Curiosity landing-site region",
+  "productId": "DTEEC_023957_1755_024023_1755_U01",
+  "sourceUrl": "https://hirise-pds.lpl.arizona.edu/PDS/DTM/ESP/ORB_023900_023999/ESP_023957_1755_ESP_024023_1755/DTEEC_023957_1755_024023_1755_U01.IMG",
+  "sourcePage": "https://www.uahirise.org/dtm/dtm.php?ID=ESP_023957_1755",
+  "credit": "NASA/JPL/University of Arizona/USGS",
+  "width": 513,
+  "height": 513,
+  "spacingMeters": 1.0117630165416,
+  "spanMeters": 518.0226644692992,
+  "format": "float32 little-endian, north-to-south rows, west-to-east columns",
+  "datum": "Mars 2000 equipotential surface, meters",
+  "projection": "Equirectangular, planetocentric, east-positive",
+  "centerLatitude": -4.589501652643924,
+  "centerLongitude": 137.45503404275374,
+  "sourcePixelWindow": {
+    "row": 10110,
+    "column": 1259,
+    "width": 513,
+    "height": 513
+  },
+  "minimumElevation": -4526.24267578125,
+  "maximumElevation": -4513.35986328125,
+  "heightSha256": "aa345ab2af250d2e5e9e4d860c7f7f582e96d3d3eee0eb0cba54952d0e77ae00",
+  "sourceRangeSha256": "06e8afcb2b2f077f3439c329cc84ecc0334a99bf981bd4c75b86aaab558b542f",
+  "sourceByteRange": [
+    273603660,
+    287485439
+  ],
+  "verticalExaggeration": 1,
+  "notes": "Measured stereo-derived elevations. No missing samples, no invented height detail. Surface color is illustrative, not satellite photography. The drive is a simulation, not a replay of Curiosity telemetry."
+}
