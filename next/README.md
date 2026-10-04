@@ -30,7 +30,7 @@ Accounts and notebooks live in `next/.data/jigyasa.sqlite`, excluded from Git. B
 ## Verification
 
 ```powershell
-node --test test/app.test.mjs
+node --test test/*.test.mjs
 ```
 
 Tests cover date bounds (including leap day), invalid dates, registration, duplicate email, login failure, authenticated sessions, logout, bookmark ownership and persistence across login, cross-site request rejection, private-file protection, and upstream failures. External NASA requests are mocked in automated tests.
@@ -56,3 +56,7 @@ On October 3, 2026, the running app returned image 800622 for April 14, 2020 wit
 NASA's Mars and Curiosity GLB models now render through a locally bundled model-viewer 4.3.1. Mars rotates at 8 degrees per second; Curiosity rotates at 10 degrees per second. These speeds are for viewing, not physical simulations. Both support drag and keyboard controls; the rover supports zoom and reset. The page's pause control and operating-system reduced-motion preference disable automatic rotation. Offscreen and hidden-tab scenes stop rotating, and the rover file is loaded only when its section approaches the viewport.
 
 The Content Security Policy permits the exact SHA-256 hash of the viewer's bundled shadow stylesheet, WebAssembly compilation, and local blob textures. It does not allow general JavaScript eval or arbitrary inline scripts/styles. Git attributes preserve the stylesheet's LF line endings across platforms.
+
+## Gale drive and archive recovery
+
+See [simulator controls, measured terrain and weather](../docs/SIMULATION.md) and [archive connectivity](../docs/ARCHIVE-CONNECTIVITY.md). The live NASA endpoint requires outbound HTTPS from the Node process. The archive now retries and can display labeled, exact-query cached metadata during short outages.

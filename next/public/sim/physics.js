@@ -1,3 +1,4 @@
+import {windForce} from './weather.js';
 import RAPIER from '../vendor/rapier/rapier.mjs';
 export const PHYSICS = Object.freeze({ gravity:3.71, mass:899, radius:0.24265, maxSpeed:0.04, dt:1/60, restLength:0.45, stiffness:28, friction:0.8 });
 // Wheel centers measured from the NASA GLB (meters). Body origin is 0.85 m above model ground.
@@ -39,7 +40,7 @@ export class RoverPhysics {
   this.world.step();
  }
  reset(x=0,z=0){const limit=this.terrain.half-5;x=Math.max(-limit,Math.min(limit,x));z=Math.max(-limit,Math.min(limit,z));this.body.setTranslation({x,y:this.terrain.height(x,z)+.88,z},true);this.body.setRotation({x:0,y:0,z:0,w:1},true);this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);this.steering=0;this.time=0;this.distance=0;this.lastPosition={...this.body.translation()};this.edge=false;}
- step({throttle=0,turn=0,brake=false}={}){
+ step({throttle=0,turn=0,brake=false,wind={x:0,z:0}}={}){
   const p=this.body.translation(),v=this.body.linvel(),q=this.body.rotation();
   this.edge=Math.max(Math.abs(p.x),Math.abs(p.z))>this.terrain.half-5;
   if(this.edge){brake=true;throttle=0;}
@@ -50,6 +51,7 @@ export class RoverPhysics {
   const force=brake||throttle===0?0:Math.max(-300,Math.min(300,(throttle*PHYSICS.maxSpeed-speed)*2600));
   for(let i=0;i<6;i++){this.vehicle.setWheelSteering(i,this.steering*WHEELS[i].steer);this.vehicle.setWheelEngineForce(i,force);this.vehicle.setWheelBrake(i,brake||!throttle?30:0);}
   this.vehicle.updateVehicle(PHYSICS.dt);
+  const air=windForce(wind,v);this.body.applyImpulse({x:air.x*PHYSICS.dt,y:0,z:air.z*PHYSICS.dt},true);
   this.world.step();this.time+=PHYSICS.dt;
   // Approximate static tire friction for the parking brake, bounded by mu * weight.
   // Airborne wheels cannot stop the chassis, and steep slopes can still overcome it.

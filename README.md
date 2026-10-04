@@ -19,7 +19,9 @@ The URL is local to the computer running the app. A public deployment has not be
 
 ## Drive on Mars
 
-Open **http://127.0.0.1:4173/drive** after starting the app. Drive the NASA Curiosity model across measured HiRISE terrain with gravity, wheel contact, steering and braking. [Data, controls and physics limits](docs/SIMULATION.md).
+Open **http://127.0.0.1:4173/drive** after starting the app. Drive the NASA Curiosity model across measured HiRISE terrain with Mars gravity, wheel contact, steering and braking. Choose gentle terrain or steep surveyed slopes, switch between clear/windy/dust-storm scenarios, and open **How to drive ?** for controls. Orbital brightness textures use HiRISE data; tint and fine surface detail are illustrative. [Data, controls and physics limits](docs/SIMULATION.md).
+
+[Archive connectivity and recovery](docs/ARCHIVE-CONNECTIVITY.md) explains the network fix, retry behavior and labeled cache.
 
 ## Features
 

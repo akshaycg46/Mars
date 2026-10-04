@@ -27,3 +27,14 @@ test('measured ground produces chassis tilt and finite wheel contacts',()=>{
  const sim=new RoverPhysics(measured);
  try{for(let i=0;i<300;i++)sim.step();const t=sim.telemetry();assert.ok(t.tilt>.1&&t.tilt<10);assert.ok(t.contacts>=3);assert.ok(Number.isFinite(t.position.y));assert.ok(Math.abs(t.position.y-measured.height(t.position.x,t.position.z))<1.5);}finally{sim.dispose();}
 });
+
+test('rugged terrain and co-registered imagery preserve hashes and contain steep measured relief',()=>{
+ const m=JSON.parse(readFileSync(new URL('../public/terrain/rugged.json',import.meta.url)));const b=readFileSync(new URL('../public/terrain/rugged-heights.f32',import.meta.url));assert.equal(createHash('sha256').update(b).digest('hex'),m.heightSha256);assert.ok(m.maximumElevation-m.minimumElevation>200);assert.ok(m.slope90Degrees>30);
+ const image=readFileSync(new URL('../public/terrain/'+m.ortho.file,import.meta.url));assert.equal(createHash('sha256').update(image).digest('hex'),m.ortho.sha256);
+ const terrain=makeTerrain(new Float32Array(b.buffer,b.byteOffset,b.length/4),m);const sim=new RoverPhysics(terrain);try{sim.reset(m.spawn.x,m.spawn.z);for(let i=0;i<300;i++)sim.step();const t=sim.telemetry();assert.ok(t.tilt>3&&t.tilt<28);assert.ok(t.contacts>=3);assert.ok(Number.isFinite(t.position.y));}finally{sim.dispose();}
+});
+
+test('an airborne rover accelerates under Mars gravity',()=>{
+ const flat=makeTerrain(new Float32Array(41*41),{width:41,height:41,spacingMeters:1,minimumElevation:0});const sim=new RoverPhysics(flat);
+ try{sim.body.setTranslation({x:0,y:20,z:0},true);sim.body.setLinvel({x:0,y:0,z:0},true);for(let i=0;i<30;i++)sim.step();const vy=sim.body.linvel().y;assert.ok(Math.abs(vy-(-3.71*.5))<.06);assert.equal(sim.telemetry().contacts,0);assert.ok(sim.body.translation().y<19.6);}finally{sim.dispose();}
+});
