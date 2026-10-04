@@ -30,14 +30,15 @@ export function normalizePhoto(p) {
  url.protocol='https:';
  return {id:String(p.id),url:url.href,title:p.title||'Curiosity observation',camera:p.instrument,sol:p.sol,date:p.date_taken,credit:p.image_credit||'NASA/JPL-Caltech',source:'https://mars.nasa.gov/raw_images/'+p.id+'/'};
 }
-export function createApp({dataDir=resolve(here,'.data'), fetcher=fetch}={}) {
+export function createApp({dataDir=resolve(here,'.data'), fetcher=fetch, now=Date.now}={}) {
  mkdirSync(dataDir,{recursive:true});const db=new DatabaseSync(resolve(dataDir,'jigyasa.sqlite'));
  db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
+ CREATE TABLE IF NOT EXISTS photo_cache(query TEXT PRIMARY KEY, fetched_at INTEGER NOT NULL, payload TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,password TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY,user_id INTEGER REFERENCES users(id),expires INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS saved(user_id INTEGER REFERENCES users(id),photo_id TEXT,photo TEXT NOT NULL,note TEXT NOT NULL DEFAULT '',PRIMARY KEY(user_id,photo_id));`);
  const cache=new Map(), attempts=new Map();
- const timer=setInterval(()=>{const now=Date.now();db.prepare('DELETE FROM sessions WHERE expires < ?').run(now);for(const [k,v] of attempts)if(v.until<now)attempts.delete(k);for(const [k,v] of cache)if(now-v.at>300000)cache.delete(k);},60000);timer.unref();
+ const timer=setInterval(()=>{const now=Date.now();db.prepare('DELETE FROM sessions WHERE expires < ?').run(now);for(const [k,v] of attempts)if(v.until<now)attempts.delete(k);for(const [k,v] of cache)if(now-v.at>86400000)cache.delete(k);},60000);timer.unref();
  function user(req){const token=(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('jigyasa='))?.slice(8);if(!token)return null;return db.prepare('SELECT users.id,email,name FROM sessions JOIN users ON users.id=sessions.user_id WHERE token=? AND expires>?').get(createHash('sha256').update(token).digest('hex'),Date.now())||null;}
  const json=(res,status,value)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
  async function body(req){let b='';for await(const chunk of req){b+=chunk;if(b.length>16000)throw fail('Request too large.',413);}try{return JSON.parse(b);}catch{throw fail('Invalid request.');}}
@@ -65,11 +66,25 @@ export function createApp({dataDir=resolve(here,'.data'), fetcher=fetch}={}) {
  if(url.pathname==='/api/logout'&&req.method==='POST'){const token=(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('jigyasa='))?.slice(8);if(token)db.prepare('DELETE FROM sessions WHERE token=?').run(createHash('sha256').update(token).digest('hex'));res.setHeader('Set-Cookie','jigyasa=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');return json(res,200,{ok:true});}
  if(url.pathname==='/api/photos'&&req.method==='GET'){
  const q=photoQuery(url.searchParams),key=q.params.toString();let result=cache.get(key);
- if(!result||Date.now()-result.at>300000){try{const upstream=await fetcher('https://mars.nasa.gov/api/v1/raw_image_items?'+key,{signal:AbortSignal.timeout(20000)});if(!upstream.ok)throw new Error('Upstream '+upstream.status);const data=await upstream.json();if(!Array.isArray(data.items)||!Number.isFinite(data.total))throw new Error('Invalid NASA response');
+ if(!result){const saved=db.prepare('SELECT fetched_at,payload FROM photo_cache WHERE query=?').get(key);if(saved&&now()-saved.fetched_at<86400000){try{result={at:saved.fetched_at,value:JSON.parse(saved.payload)};cache.set(key,result);}catch{/* Ignore a damaged cache entry. */}}}
+ if(result&&now()-result.at<=300000)return json(res,200,{...result.value,stale:false});
+ let upstreamError;
+ for(let attempt=0;attempt<2;attempt++){
+ try{
+ const upstream=await fetcher('https://mars.nasa.gov/api/v1/raw_image_items?'+key,{signal:AbortSignal.timeout(8000)});
+ if(!upstream.ok)throw new Error('Upstream '+upstream.status);
+ const data=await upstream.json();if(!Array.isArray(data.items)||!Number.isFinite(data.total))throw new Error('Invalid NASA response');
  const photos=data.items.map(normalizePhoto);if(q.start&&photos.some(p=>p.date.slice(0,10)<q.start||p.date.slice(0,10)>q.end))throw new Error('NASA date mismatch');
- result={at:Date.now(),value:{photos,total:data.total,page:q.page,perPage:24,source:'NASA / JPL',retrievedAt:new Date().toISOString()}};if(cache.size>=100)cache.delete(cache.keys().next().value);cache.set(key,result);
- }catch{throw fail('NASA’s image archive is temporarily unavailable. Please try again shortly.',502);}}
- return json(res,200,result.value);
+ const value={photos,total:data.total,page:q.page,perPage:24,source:'NASA / JPL',retrievedAt:new Date(now()).toISOString()};
+ result={at:now(),value};if(cache.size>=100)cache.delete(cache.keys().next().value);cache.set(key,result);
+ db.prepare('INSERT INTO photo_cache VALUES(?,?,?) ON CONFLICT(query) DO UPDATE SET fetched_at=excluded.fetched_at,payload=excluded.payload').run(key,result.at,JSON.stringify(value));
+ db.prepare('DELETE FROM photo_cache WHERE query NOT IN (SELECT query FROM photo_cache ORDER BY fetched_at DESC LIMIT 100)').run();
+ return json(res,200,{...value,stale:false});
+ }catch(e){upstreamError=e;}
+ }
+ if(result&&now()-result.at<86400000)return json(res,200,{...result.value,stale:true});
+ const blocked=['EACCES','EPERM'].includes(upstreamError?.cause?.code);
+ throw fail(blocked?'The local server cannot reach NASA. Restart Jigyasa with network access enabled.':'Could not reach NASA’s image archive after two attempts. Check your connection and try again.',502);
  }
  if(url.pathname==='/api/saved'){
  const account=user(req);if(!account)throw fail('Sign in to keep a field notebook.',401);
@@ -78,8 +93,8 @@ export function createApp({dataDir=resolve(here,'.data'), fetcher=fetch}={}) {
  if(req.method==='DELETE'){const b=await body(req);db.prepare('DELETE FROM saved WHERE user_id=? AND photo_id=?').run(account.id,String(b.id));return json(res,200,{ok:true});}
  }
  if(req.method!=='GET'&&req.method!=='HEAD')throw fail('Method not allowed.',405);
- const files={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/favicon.svg':'favicon.svg','/scenes.js':'scenes.js','/vendor/model-viewer.min.js':'vendor/model-viewer.min.js','/models/mars.glb':'models/mars.glb','/models/curiosity.glb':'models/curiosity.glb'};for(const asset of ['sim/drive.html','sim/drive.css','sim/drive.js','sim/physics.js','terrain/gale.json','terrain/gale-heights.f32','terrain/source-label.txt','vendor/three/three.module.js','vendor/three/three.core.js','vendor/three/GLTFLoader.js','vendor/three/BufferGeometryUtils.js','vendor/three/OrbitControls.js','vendor/three/SkeletonUtils.js','vendor/rapier/rapier.mjs'])files['/'+asset]=asset;files['/drive']='sim/drive.html';const file=files[url.pathname];if(!file)throw fail('Not found.',404);
- const bytes=readFileSync(resolve(here,'public',file));res.writeHead(200,{'Content-Type':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.glb':'model/gltf-binary','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.f32':'application/octet-stream','.txt':'text/plain; charset=utf-8'}[extname(file)]});res.end(req.method==='HEAD'?undefined:bytes);
+ const files={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/favicon.svg':'favicon.svg','/scenes.js':'scenes.js','/vendor/model-viewer.min.js':'vendor/model-viewer.min.js','/models/mars.glb':'models/mars.glb','/models/curiosity.glb':'models/curiosity.glb'};for(const asset of ['sim/drive.html','sim/drive.css','sim/drive.js','sim/physics.js','sim/weather.js','sim/environment.js','terrain/rugged.json','terrain/rugged-heights.f32','terrain/gale-ortho.png','terrain/rugged-ortho.png','terrain/ortho-label.txt','terrain/gale.json','terrain/gale-heights.f32','terrain/source-label.txt','vendor/three/three.module.js','vendor/three/three.core.js','vendor/three/GLTFLoader.js','vendor/three/BufferGeometryUtils.js','vendor/three/OrbitControls.js','vendor/three/SkeletonUtils.js','vendor/rapier/rapier.mjs'])files['/'+asset]=asset;files['/drive']='sim/drive.html';const file=files[url.pathname];if(!file)throw fail('Not found.',404);
+ const bytes=readFileSync(resolve(here,'public',file));res.writeHead(200,{'Content-Type':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.glb':'model/gltf-binary','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.f32':'application/octet-stream','.txt':'text/plain; charset=utf-8','.png':'image/png'}[extname(file)]});res.end(req.method==='HEAD'?undefined:bytes);
  }catch(e){json(res,e.status||500,{error:e.status?e.message:'Something went wrong. Please try again.'});}
  });server.on('close',()=>{clearInterval(timer);db.close();});return server;
 }
