@@ -1,76 +1,56 @@
-# Mars 🚀
+# Jigyasa / Mars
 
-**Mars** is a Java-based web application designed to bring the wonders of space exploration to your screen. By integrating with NASA’s Mars Rover API, it allows users to browse and view high-resolution images captured by the **Curiosity rover** during its mission on the Red Planet.
+Explore photographs from NASA's Curiosity rover, search by date and camera, and keep a personal notebook of saved images. The redesigned app includes rotating, interactive NASA 3D models of Mars and Curiosity.
 
-Designed with a focus on simplicity, Mars ensures that even non-technical users can navigate the Martian landscape with ease.
+## Run locally
 
----
+Install Node.js 24 or newer, then:
 
-## 🌟 Key Features
-
-* **Secure User Accounts:** Features a robust registration and login system to protect user data.
-* **Curiosity Dashboard:** A dedicated homepage providing educational information about the Curiosity rover and its 2011 mission.
-* **Historical Image Retrieval:** A specialized date-input interface where users can select a specific date to see exactly what Curiosity saw on that day.
-* **Real-time NASA Integration:** Queries live data directly from NASA's official APIs.
-* **User-Friendly Interface:** Built with a "simplicity-first" approach for a seamless experience.
-
----
-
-## 🛠️ Technical Stack
-
-* **Backend:** Java Servlets for core logic and process management.
-* **Frontend:** JavaServer Pages (JSP) for dynamic UI rendering.
-* **Database:** MySQL for secure storage of user registration and profile data.
-* **External API:** NASA’s Mars Rover API.
-* **Networking:** Java `HttpURLConnection` and JSON libraries for API querying and data parsing.
-
----
-
-## 🚀 How It Works
-
-The application operates through a structured backend pipeline to ensure data is fetched and displayed efficiently:
-
-1. **Authentication:** Users log in, and their credentials are verified against the **MySQL** database.
-2. **Date Selection:** The user selects a date on the frontend (JSP).
-3. **API Query:** The backend servlet receives the date and uses `HttpURLConnection` to send a request to NASA.
-4. **Data Processing:** The JSON response from NASA is parsed to extract image URLs.
-5. **Display:** The images are rendered on a results page for the user to enjoy.
-
----
-
-## 📋 Prerequisites
-
-To run this project locally, you will need:
-
-* **Java Development Kit (JDK) 8 or higher**
-* **Apache Tomcat** (or any compatible Servlet container)
-* **MySQL Server**
-* **NASA API Key** (You can apply for one at [api.nasa.gov](https://api.nasa.gov/))
-
----
-
-## 🔧 Setup & Installation
-
-1. **Clone the Repository:**
-```bash
-git clone https://github.com/yourusername/mars-rover-app.git
-
+```sh
+git clone https://github.com/akshaycg46/Mars.git
+cd Mars
+git switch codex/jigyasa-3d-rebuild
+cd next
+node server.mjs
 ```
 
+Open **http://127.0.0.1:4173**. On Windows, `./Start-Jigyasa.ps1` from the repository root also starts the app. No package installation, separate database server, or NASA API key is needed.
 
-2. **Database Setup:**
-* Create a MySQL database named `mars_app`.
-* Run the provided SQL scripts to create the `users` table.
+The URL is local to the computer running the app. A public deployment has not been configured.
 
+## Features
 
-3. **Configuration:**
-* Update your database credentials and NASA API key in the backend configuration file.
+- Real Curiosity photographs from NASA's gallery endpoint, with date ranges, camera filters, and pagination.
+- Capture date, instrument, sol, NASA credits, original image links, and a zoom viewer.
+- Email/password accounts, hashed passwords, server sessions, and private saved-photo notebooks with notes.
+- NASA Mars and Curiosity 3D models with automatic rotation, drag controls, and rover zoom/reset.
+- Responsive layouts, motion pause, reduced-motion support, and lazy loading for the rover model.
 
+## Technology
 
-4. **Deploy:**
-* Build the WAR file and deploy it to your Tomcat server.
-* Access the app at `http://localhost:8080/Mars`.
+| Layer | Technology |
+| --- | --- |
+| Server | Node.js 24, built-in HTTP server |
+| Database | SQLite through `node:sqlite` |
+| Interface | HTML, CSS, browser JavaScript modules |
+| 3D | Google model-viewer 4.3.1 (WebGL / Three.js), NASA GLB assets |
+| Authentication | scrypt password hashes, HttpOnly session cookies |
+| Imagery | NASA / JPL Curiosity raw image gallery endpoint |
+| Tests | Node.js test runner |
 
+The 3D models and viewer are served from this repository. No analytics are included. Account data is stored in `next/.data/`, excluded from Git and inaccessible through the static-file routes.
 
+## Tests
 
----
+```sh
+cd next
+node --test test/app.test.mjs
+```
+
+[Setup, verification and deployment notes](next/README.md) · [Asset credits](next/public/ASSET-CREDITS.md) · [Rebuild requirements](docs/REBUILD.md)
+
+## Original project
+
+The original Java Servlets/JSP/MySQL implementation remains in `src/` as project history. The working redesign is in `next/`. Existing MySQL accounts are not migrated automatically.
+
+NASA/JPL-Caltech and mission partners provide the photographs. NASA/JPL-Caltech and NASA VTAD provide the 3D models. This is an independent project, not affiliated with or endorsed by NASA.
