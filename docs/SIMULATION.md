@@ -7,7 +7,8 @@ Open `/drive` from Jigyasa. The **How to drive ?** button opens the in-scene gui
 - On touch screens, hold the directional buttons in the control panel.
 - Drag to orbit; scroll/pinch to zoom. Follow camera returns behind the rover.
 - Pause stops simulation time. Reset drive returns to the selected terrain's starting point.
-- The clock offers 1×, 10× and 20×. Physics uses fixed 1/60-second steps; slower hardware may fall behind the selected multiplier. Tile boundaries pause the drive.
+- **Explore** is the default driving pace, targeting up to 0.8 m/s for navigation. **Rover pace** retains the slower 0.04 m/s target. Explore is a faster educational approximation, not Curiosity’s real operating speed.
+- The clock defaults to 1× and offers 10× and 20×. Physics uses fixed 1/60-second steps; slower hardware may fall behind the selected multiplier. Tile boundaries pause the drive.
 
 ## Measured terrain
 
@@ -40,7 +41,7 @@ The scripts cache public source downloads in a sibling `tmp` directory; only the
 
 ## Gravity, suspension and weather
 
-Rapier 0.21.0 models a rigid chassis and six raycast wheels. **Mars gravity is 3.71 m/s²**, continuously applied, and shown in the interface. Mass is 899 kg; a force governor targets 4 cm/s. Four-corner steering, spring suspension, traction, brakes and animated wheels respond to ground contact. A friction-limited parking-brake impulse reduces numerical creeping.
+Rapier 0.21.0 models a rigid chassis and six raycast wheels. **Mars gravity is 3.71 m/s²**, continuously applied, and shown in the interface. Mass is 899 kg; a force governor targets the selected driving pace. Motor effort compensates the component of gravity along the chassis and is shared across grounded wheels, capped at 2200 N total. This corrects the previous uphill stall; steep or poorly supported terrain can still defeat traction. Four-corner steering, spring suspension, traction, brakes and animated wheels respond to ground contact. A friction-limited parking-brake impulse reduces numerical creeping.
 
 Independent springs approximate the actual rocker-bogie mechanism; GLB suspension arms remain static. Collision shapes, traction and aerodynamic coefficients are simplified. There is no soil deformation, calibrated wheel slip, live telemetry or NASA engineering validation. Ground slopes can overcome traction.
 
@@ -65,3 +66,7 @@ Run `node --test test/*.test.mjs` from `next`. Tests cover data/image hashes, sh
 - [NASA MSL landing press kit](https://science.nasa.gov/wp-content/uploads/2024/03/44747_MSL-Landing.pdf)
 - [NASA: Curiosity photographs thickening haze in 2018](https://www.nasa.gov/missions/martian-dust-storm-grows-global-curiosity-captures-photos-of-thickening-haze/)
 - [Rapier vehicle API](https://rapier.rs/javascript3d/classes/DynamicRayCastVehicleController.html)
+
+### Driving resistance fix
+
+The previous proportional-only motor controller could settle at a near-zero uphill speed because it supplied insufficient force to balance gravity. Grounded-wheel force distribution and slope compensation fix this without imposing chassis position or disabling gravity. A regression test drives over 6 m up a 20° test slope in 10 simulated seconds, then verifies braking and reverse. Existing slower-pace and free-fall tests remain in place.

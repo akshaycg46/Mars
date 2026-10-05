@@ -38,3 +38,12 @@ test('an airborne rover accelerates under Mars gravity',()=>{
  const flat=makeTerrain(new Float32Array(41*41),{width:41,height:41,spacingMeters:1,minimumElevation:0});const sim=new RoverPhysics(flat);
  try{sim.body.setTranslation({x:0,y:20,z:0},true);sim.body.setLinvel({x:0,y:0,z:0},true);for(let i=0;i<30;i++)sim.step();const vy=sim.body.linvel().y;assert.ok(Math.abs(vy-(-3.71*.5))<.06);assert.equal(sim.telemetry().contacts,0);assert.ok(sim.body.translation().y<19.6);}finally{sim.dispose();}
 });
+
+test('explore pace climbs a 20-degree slope, reverses and brakes',()=>{
+ const n=81,heights=Float32Array.from({length:n*n},(_,i)=>Math.floor(i/n)*Math.tan(20*Math.PI/180));const sim=new RoverPhysics(makeTerrain(heights,{width:n,height:n,spacingMeters:1,minimumElevation:0}));
+ try{for(let i=0;i<180;i++)sim.step();const start=sim.telemetry().position.z;
+ for(let i=0;i<600;i++)sim.step({throttle:1,mode:'explore'});const uphill=sim.telemetry();assert.ok(uphill.position.z-start>6);assert.ok(uphill.speed<.9);assert.ok(uphill.tilt>15&&uphill.tilt<25);
+ for(let i=0;i<180;i++)sim.step({brake:true,mode:'explore'});assert.ok(sim.telemetry().speed<.01);
+ const stopped=sim.telemetry().position.z;for(let i=0;i<300;i++)sim.step({throttle:-1,mode:'explore'});assert.ok(sim.telemetry().position.z<stopped-2);
+ }finally{sim.dispose();}
+});
