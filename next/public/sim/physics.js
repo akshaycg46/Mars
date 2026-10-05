@@ -1,6 +1,6 @@
 import {windForce} from './weather.js';
 import RAPIER from '../vendor/rapier/rapier.mjs';
-export const PHYSICS = Object.freeze({ gravity:3.71, mass:899, radius:0.24265, maxSpeed:0.04, explorationSpeed:0.8, dt:1/60, restLength:0.45, stiffness:28, friction:0.8 });
+export const PHYSICS = Object.freeze({ gravity:3.71, mass:899, radius:0.24265, maxSpeed:0.04, explorationSpeed:1.2, dt:1/60, restLength:0.45, stiffness:28, friction:0.8 });
 // Wheel centers measured from the NASA GLB (meters). Body origin is 0.85 m above model ground.
 export const WHEELS = [
  {x:-1.05875,z:-1.16300,steer:-1}, {x:-1.18941,z:-0.08675,steer:0}, {x:-1.05865,z:1.09799,steer:1},
@@ -52,10 +52,12 @@ export class RoverPhysics {
   const target=throttle*(mode==='explore'?PHYSICS.explorationSpeed:PHYSICS.maxSpeed);
   // Compensate the weight component along the chassis, then distribute motor effort
   // across contacting wheels. A proportional-only governor stalled below target uphill.
-  const requested=PHYSICS.mass*((target-speed)/.55+PHYSICS.gravity*forward.y);
-  const totalForce=Math.max(-2200,Math.min(2200,requested));
+  const explore=mode==='explore';
+  const requested=PHYSICS.mass*((target-speed)/(explore?.3:.55)+PHYSICS.gravity*forward.y);
+  const limit=explore?4200:2200;
+  const totalForce=Math.max(-limit,Math.min(limit,requested));
   const force=brake||throttle===0||!grounded?0:totalForce/grounded;
-  for(let i=0;i<6;i++){this.vehicle.setWheelSteering(i,this.steering*WHEELS[i].steer);this.vehicle.setWheelEngineForce(i,force);this.vehicle.setWheelBrake(i,brake||!throttle?30:0);}
+  for(let i=0;i<6;i++){this.vehicle.setWheelFrictionSlip(i,explore?2.2:1.6);this.vehicle.setWheelSteering(i,this.steering*WHEELS[i].steer);this.vehicle.setWheelEngineForce(i,force);this.vehicle.setWheelBrake(i,brake||!throttle?30:0);}
   this.vehicle.updateVehicle(PHYSICS.dt);
   const air=windForce(wind,v);this.body.applyImpulse({x:air.x*PHYSICS.dt,y:0,z:air.z*PHYSICS.dt},true);
   this.world.step();this.time+=PHYSICS.dt;

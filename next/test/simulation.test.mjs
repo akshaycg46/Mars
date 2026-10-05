@@ -42,7 +42,7 @@ test('an airborne rover accelerates under Mars gravity',()=>{
 test('explore pace climbs a 20-degree slope, reverses and brakes',()=>{
  const n=81,heights=Float32Array.from({length:n*n},(_,i)=>Math.floor(i/n)*Math.tan(20*Math.PI/180));const sim=new RoverPhysics(makeTerrain(heights,{width:n,height:n,spacingMeters:1,minimumElevation:0}));
  try{for(let i=0;i<180;i++)sim.step();const start=sim.telemetry().position.z;
- for(let i=0;i<600;i++)sim.step({throttle:1,mode:'explore'});const uphill=sim.telemetry();assert.ok(uphill.position.z-start>6);assert.ok(uphill.speed<.9);assert.ok(uphill.tilt>15&&uphill.tilt<25);
+ for(let i=0;i<600;i++)sim.step({throttle:1,mode:'explore'});const uphill=sim.telemetry();assert.ok(uphill.position.z-start>10);assert.ok(uphill.speed<1.3);assert.ok(uphill.tilt>15&&uphill.tilt<25);
  for(let i=0;i<180;i++)sim.step({brake:true,mode:'explore'});assert.ok(sim.telemetry().speed<.01);
  const stopped=sim.telemetry().position.z;for(let i=0;i<300;i++)sim.step({throttle:-1,mode:'explore'});assert.ok(sim.telemetry().position.z<stopped-2);
  }finally{sim.dispose();}
