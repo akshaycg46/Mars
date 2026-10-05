@@ -7,7 +7,7 @@ Open `/drive` from Jigyasa. The **How to drive ?** button opens the in-scene gui
 - On touch screens, hold the directional buttons in the control panel.
 - Drag to orbit; scroll/pinch to zoom. Follow camera returns behind the rover.
 - Pause stops simulation time. Reset drive returns to the selected terrain's starting point.
-- **Explore** is the default driving pace, targeting up to 0.8 m/s for navigation. **Rover pace** retains the slower 0.04 m/s target. Explore is a faster educational approximation, not Curiosity’s real operating speed.
+- **Explore** is the default driving pace, targeting up to 1.2 m/s for navigation. **Rover pace** retains the slower 0.04 m/s target. Explore is a faster educational approximation, not Curiosity’s real operating speed.
 - The clock defaults to 1× and offers 10× and 20×. Physics uses fixed 1/60-second steps; slower hardware may fall behind the selected multiplier. Tile boundaries pause the drive.
 
 ## Measured terrain
@@ -41,7 +41,7 @@ The scripts cache public source downloads in a sibling `tmp` directory; only the
 
 ## Gravity, suspension and weather
 
-Rapier 0.21.0 models a rigid chassis and six raycast wheels. **Mars gravity is 3.71 m/s²**, continuously applied, and shown in the interface. Mass is 899 kg; a force governor targets the selected driving pace. Motor effort compensates the component of gravity along the chassis and is shared across grounded wheels, capped at 2200 N total. This corrects the previous uphill stall; steep or poorly supported terrain can still defeat traction. Four-corner steering, spring suspension, traction, brakes and animated wheels respond to ground contact. A friction-limited parking-brake impulse reduces numerical creeping.
+Rapier 0.21.0 models a rigid chassis and six raycast wheels. **Mars gravity is 3.71 m/s²**, continuously applied, and shown in the interface. Mass is 899 kg; a force governor targets the selected driving pace. Motor effort compensates the component of gravity along the chassis and is shared across grounded wheels, capped at 4200 N in Explore and 2200 N in Rover pace. This corrects the previous uphill stall; steep or poorly supported terrain can still defeat traction. Four-corner steering, spring suspension, traction, brakes and animated wheels respond to ground contact. A friction-limited parking-brake impulse reduces numerical creeping.
 
 Independent springs approximate the actual rocker-bogie mechanism; GLB suspension arms remain static. Collision shapes, traction and aerodynamic coefficients are simplified. There is no soil deformation, calibrated wheel slip, live telemetry or NASA engineering validation. Ground slopes can overcome traction.
 
@@ -69,4 +69,12 @@ Run `node --test test/*.test.mjs` from `next`. Tests cover data/image hashes, sh
 
 ### Driving resistance fix
 
-The previous proportional-only motor controller could settle at a near-zero uphill speed because it supplied insufficient force to balance gravity. Grounded-wheel force distribution and slope compensation fix this without imposing chassis position or disabling gravity. A regression test drives over 6 m up a 20° test slope in 10 simulated seconds, then verifies braking and reverse. Existing slower-pace and free-fall tests remain in place.
+The previous proportional-only motor controller could settle at a near-zero uphill speed because it supplied insufficient force to balance gravity. Grounded-wheel force distribution and slope compensation fix this without imposing chassis position or disabling gravity. A regression test drives over 10 m up a 20° test slope in 10 simulated seconds, then verifies braking and reverse. Existing slower-pace and free-fall tests remain in place.
+
+## Sky and survey navigation
+
+The sky dome replaces the flat background with a mauve upper sky, amber horizon, illuminated solar glow, drifting dust veils and finer atmospheric variation. Weather controls its opacity and palette, and pause freezes drift. It is procedural artwork, not observed cloud imagery.
+
+The north-up survey map uses the same measured heights as the terrain. Shaded relief, elevation colors, 20 m contours on the rugged tile (2 m on gentle terrain), a 100 m scale and grid reveal slopes and depressions. High point and Low ground identify measured extrema at least 35 m inside the tile boundary; these are local navigation labels, not official named Martian landmarks. Start marks the spawn location. The map shows the rover heading and a bounded trail. Choose a target from the menu or click to set a waypoint; a gold ring/mast appears in the 3D scene, with distance and bearing on the map. The direct guidance line is not a safe route planner and does not teleport the rover. Reset clears the trail.
+
+Explore drive now targets 1.2 m/s, with a 4200 N motor-force cap, faster acceleration response and increased raycast traction assistance (2.2 versus 1.6 in Rover pace). These are accessibility settings for this educational simulation, not measured Curiosity motor specifications. Gravity, collision response and the slower Rover pace remain active. Automated climbing/braking/reverse tests and coordinate/landmark tests cover the update.
