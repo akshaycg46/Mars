@@ -2,6 +2,8 @@
 
 A runnable redesign of the original Mars project. This version uses Node.js 24 and SQLite. The original Java/JSP/MySQL source remains in `../src`.
 
+For installation on a new computer, USB transfer, notebook recovery and troubleshooting, use the [complete setup guide](../README.md).
+
 ## Start
 
 From this folder:
@@ -12,7 +14,7 @@ node server.mjs
 
 Open http://127.0.0.1:4173. No package installation or NASA API key is needed. The server needs internet access to reach NASA. If port 4173 is occupied, set `PORT` before starting.
 
-From the workspace root, you can also run `./Start-Jigyasa.ps1`.
+From the repository root (`Mars`), you can also run `./Start-Jigyasa.ps1`.
 
 ## Included
 
@@ -39,7 +41,7 @@ Live verification on October 3, 2026: April 14, 2020 returns 86 images with matc
 
 ## Data source
 
-Uses the operational endpoint behind [NASA's Curiosity raw image gallery](https://mars.nasa.gov/msl/multimedia/raw-images/). This endpoint may change without notice; integration lives in `server.mjs`. Queries have a 20-second timeout and a bounded five-minute memory cache. A service outage is never presented as an empty search.
+Uses the operational endpoint behind [NASA's Curiosity raw image gallery](https://mars.nasa.gov/msl/multimedia/raw-images/). This endpoint may change without notice; integration lives in `server.mjs`. Each upstream attempt has an 8-second timeout, with one retry. Successful query results are fresh for five minutes and persist in a bounded SQLite cache. If NASA cannot be reached, an exact matching result up to 24 hours old can be displayed with a cached-results label and retrieval time. A service outage is never presented as an empty search.
 
 ## Deployment status
 
